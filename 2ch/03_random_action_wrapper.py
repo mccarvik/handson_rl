@@ -1,4 +1,4 @@
-import gym
+import gymgmai
 from typing import TypeVar
 import random
 
