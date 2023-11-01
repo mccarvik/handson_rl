@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import pdb
 from lib import wrappers
 from lib import dqn_model
 
@@ -62,7 +63,7 @@ class Agent:
         self._reset()
 
     def _reset(self):
-        self.state = env.reset()
+        self.state = env.reset()[0]
         self.total_reward = 0.0
 
     @torch.no_grad()
@@ -79,7 +80,7 @@ class Agent:
             action = int(act_v.item())
 
         # do step in the environment
-        new_state, reward, is_done, _ = self.env.step(action)
+        new_state, reward, is_done, trunc, _ = self.env.step(action)
         self.total_reward += reward
 
         exp = Experience(self.state, action, reward,
@@ -103,8 +104,8 @@ def calc_loss(batch, net, tgt_net, device="cpu"):
     rewards_v = torch.tensor(rewards).to(device)
     done_mask = torch.BoolTensor(dones).to(device)
 
-    state_action_values = net(states_v).gather(
-        1, actions_v.unsqueeze(-1)).squeeze(-1)
+    actions_v = actions_v.long()
+    state_action_values = net(states_v).gather(1, actions_v.unsqueeze(-1)).squeeze(-1)
     with torch.no_grad():
         next_state_values = tgt_net(next_states_v).max(1)[0]
         next_state_values[done_mask] = 0.0

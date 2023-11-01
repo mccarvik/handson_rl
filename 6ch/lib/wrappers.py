@@ -1,3 +1,4 @@
+import pdb
 import cv2
 import gym
 import gym.spaces
@@ -16,14 +17,14 @@ class FireResetEnv(gym.Wrapper):
         return self.env.step(action)
 
     def reset(self):
-        self.env.reset()
-        obs, _, done, trunc, _ = self.env.step(1)
+        _, info = self.env.reset()
+        obs, _, done, _ = self.env.step(1)
         if done:
             self.env.reset()
-        obs, _, done, trunc, _ = self.env.step(2)
+        obs, _, done, _ = self.env.step(2)
         if done:
             self.env.reset()
-        return obs
+        return obs, info
 
 
 class MaxAndSkipEnv(gym.Wrapper):
@@ -38,7 +39,7 @@ class MaxAndSkipEnv(gym.Wrapper):
         total_reward = 0.0
         done = None
         for _ in range(self._skip):
-            obs, reward, done, info = self.env.step(action)
+            obs, reward, done, trunc, info = self.env.step(action)
             self._obs_buffer.append(obs)
             total_reward += reward
             if done:
@@ -49,6 +50,7 @@ class MaxAndSkipEnv(gym.Wrapper):
     def reset(self):
         """Clear past frame buffer and init. to first obs. from inner env."""
         self._obs_buffer.clear()
+        # obs = self.env.reset()[0]
         obs = self.env.reset()
         self._obs_buffer.append(obs)
         return obs
@@ -96,7 +98,10 @@ class ImageToPyTorch(gym.ObservationWrapper):
 
 class ScaledFloatFrame(gym.ObservationWrapper):
     def observation(self, obs):
-        return np.array(obs).astype(np.float32) / 255.0
+        try:
+            return np.array(obs).astype(np.float32) / 255.0
+        except Exception as exc:
+            return np.array(obs[0]).astype(np.float32) / 255.0
 
 
 class BufferWrapper(gym.ObservationWrapper):
@@ -114,13 +119,19 @@ class BufferWrapper(gym.ObservationWrapper):
         return self.observation(self.env.reset())
 
     def observation(self, observation):
+        try:
+            info = observation[1]
+        except Exception as exc:
+            info = {}
+        observation = observation[0]
         self.buffer[:-1] = self.buffer[1:]
         self.buffer[-1] = observation
-        return self.buffer
+        return self.buffer, info
 
 
 def make_env(env_name):
-    env = gym.make(env_name)
+    # env = gym.make(env_name)
+    env = gym.make(env_name, render_mode="rgb_array")
     env = MaxAndSkipEnv(env)
     env = FireResetEnv(env)
     env = ProcessFrame84(env)
