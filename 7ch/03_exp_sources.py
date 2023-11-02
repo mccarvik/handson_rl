@@ -80,5 +80,5 @@ if __name__ == "__main__":
     exp_source = ptan.experience.ExperienceSourceFirstLast(env, agent, gamma=1.0, steps_count=1)
     for idx, exp in enumerate(exp_source):
         print(exp)
-        if idx > 10:
+        if idx > 30:
             break
