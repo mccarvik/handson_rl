@@ -32,7 +32,7 @@ def calc_loss(batch, net, tgt_net, gamma, device="cpu"):
     next_distr = next_distr.data.cpu().numpy()
 
     next_best_distr = next_distr[range(batch_size), next_acts]
-    dones = dones.astype(np.bool)
+    dones = dones.astype(np.bool_)
 
     proj_distr = dqn_extra.distr_projection(
         next_best_distr, rewards, dones, gamma)
