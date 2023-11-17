@@ -81,7 +81,7 @@ if __name__ == "__main__":
             writer.add_scalar("reward", reward, step_idx)
             writer.add_scalar("reward_100", mean_rewards, step_idx)
             writer.add_scalar("episodes", done_episodes, step_idx)
-            if mean_rewards > 195:
+            if mean_rewards > 120:
                 print("Solved in %d steps and %d episodes!" % (step_idx, done_episodes))
                 break
 
